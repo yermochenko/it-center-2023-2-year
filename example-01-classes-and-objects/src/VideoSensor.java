@@ -3,6 +3,7 @@ public class VideoSensor {
 	String colorMode;
 	int widthResolution;
 	int heightResolution;
+	int fps;
 	int power;
 	double weight;
 }
