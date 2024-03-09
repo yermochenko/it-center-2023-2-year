@@ -24,14 +24,11 @@ public class Deck {
 		Collections.shuffle(cards);
 	}
 
-	public Card take() {
-		if(cards.isEmpty()) {
-			return null;
-		} else {
-			Card card = cards.get(cards.size() - 1);
-			cards.remove(cards.size() - 1);
-			return card;
-		}
+	public Card take() throws NotEnoughCardsException {
+		if(cards.isEmpty()) throw new NotEnoughCardsException();
+		Card card = cards.get(cards.size() - 1);
+		cards.remove(cards.size() - 1);
+		return card;
 	}
 
 	public boolean isEmpty() {
