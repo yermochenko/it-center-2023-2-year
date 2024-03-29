@@ -1,11 +1,13 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class Player {
 	private final String name;
 	private final List<Card> hand = new ArrayList<>();
 	private Integer money;
+	private Game game;
 
 	public Player(String name, Integer money) {
 		this.name = name;
@@ -52,5 +54,21 @@ public class Player {
 	public boolean isNeedMoreCard() {
 		Random random = new Random();
 		return random.nextBoolean();
+	}
+
+	public void setGame(Game game) {
+		this.game = game;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+		return Objects.equals(name, ((Player) obj).name);
 	}
 }

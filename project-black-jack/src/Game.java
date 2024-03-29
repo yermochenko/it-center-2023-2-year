@@ -1,23 +1,29 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Game {
 	private List<Player> players = new ArrayList<>();
 	private Deck deck;
-	private List<Integer> bets = new ArrayList<>();
+	private Map<Player, Integer> bets = new HashMap<>();
 	private List<Card> croupierHand = new ArrayList<>();
+	private int round;
 
 	public Game(Deck deck, List<Player> players) {
 		this.deck = deck;
 		deck.shuffle();
 		this.players.addAll(players);
+		for(Player player : players) {
+			player.setGame(this);
+		}
 		Collections.shuffle(this.players);
 	}
 
 	public void play(int rounds) {
 		try {
-			for(int round = 1; round <= rounds; round++) {
+			for(round = 1; round <= rounds; round++) {
 				System.out.println("РАУНД #" + round + " НАЧАТ");
 				for(int i = 0; i < players.size(); i++) {
 					System.out.println("    Игрок " + players.get(i).getName() + ": " + players.get(i).getMoney());
@@ -29,7 +35,7 @@ public class Game {
 					System.out.print("        Игрок " + player.getName() + " сделал ставку " + bet + ". ");
 					try {
 						player.subMoney(bet);
-						bets.add(bet);
+						bets.put(player, bet);
 						System.out.println("Ставка принята");
 						i++;
 					} catch(NegativeMoneyException | NotEnoughMoneyException e) {
@@ -117,5 +123,21 @@ public class Game {
 		} catch(NotEnoughCardsException e) {
 			System.out.println("ОШИБКА: Для продолжения игры не хватает карт в колоде");
 		}
+	}
+
+	public List<Player> getPlayers() {
+		return players;
+	}
+
+	public Map<Player, Integer> getBets() {
+		return bets;
+	}
+
+	public List<Card> getCroupierHand() {
+		return croupierHand;
+	}
+
+	public int getRound() {
+		return round;
 	}
 }
