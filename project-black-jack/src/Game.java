@@ -1,15 +1,17 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class Game {
+public class Game implements GameInfo {
 	private List<Player> players = new ArrayList<>();
 	private Deck deck;
 	private Map<Player, Integer> bets = new HashMap<>();
 	private List<Card> croupierHand = new ArrayList<>();
-	private int round;
+	private int currentRound;
+	private int roundsCount;
 
 	public Game(Deck deck, List<Player> players) {
 		this.deck = deck;
@@ -23,56 +25,57 @@ public class Game {
 
 	public void play(int rounds) {
 		try {
-			for(round = 1; round <= rounds; round++) {
-				System.out.println("РАУНД #" + round + " НАЧАТ");
-				for(int i = 0; i < players.size(); i++) {
-					System.out.println("    Игрок " + players.get(i).getName() + ": " + players.get(i).getMoney());
+			roundsCount = rounds;
+			for(currentRound = 1; currentRound <= rounds; currentRound++) {
+				System.out.println("РАУНД " + currentRound + " из " + rounds + " НАЧАТ");
+				for(Player player : players) {
+					System.out.println("    Игрок " + player.getName() + ": " + player.getMoney());
 				}
 				System.out.println("    Сбор ставок игроков...");
-				for(int i = 0; i < players.size();) {
-					Player player = players.get(i);
+				Iterator<Player> itertor = players.iterator();
+				while(itertor.hasNext()) {
+					Player player = itertor.next();
 					Integer bet = player.makeBet();
 					System.out.print("        Игрок " + player.getName() + " сделал ставку " + bet + ". ");
 					try {
 						player.subMoney(bet);
 						bets.put(player, bet);
 						System.out.println("Ставка принята");
-						i++;
-					} catch(NegativeMoneyException | NotEnoughMoneyException e) {
+					} catch(NotPositiveMoneyException | NotEnoughMoneyException e) {
 						System.out.println("Ставка не принята.\nОшибочная сумма: " + e.getMessage());
 						System.out.println("Игрок " + player.getName() + " дисквалифицирован");
-						players.remove(i);
+						itertor.remove();
 					}
 				}
 				System.out.println("    Игра...");
 				// сдача карт игрокам
 				System.out.println("        Сдача карт:");
-				for(int i = 0; i < players.size(); i++) {
-					players.get(i).getHand().add(deck.take());
-					players.get(i).getHand().add(deck.take());
-					System.out.println("            Карты игрока " + players.get(i).getName() + ": " + players.get(i).getHand());
+				for(Player player : players) {
+					player.getHand().add(deck.take());
+					player.getHand().add(deck.take());
+					System.out.println("            Карты игрока " + player.getName() + ": " + player.getHand());
 				}
 				// сдача карты крупье
 				croupierHand.add(deck.take());
 				System.out.println("            Карты крупье: " + croupierHand);
 				// игра игроков
 				System.out.println("    Игра:");
-				for(int i = 0; i < players.size(); i++) {
-					System.out.println("        Игрок " + players.get(i).getName());
-					System.out.println("            карты: " + players.get(i).getHand());
+				for(Player player : players) {
+					System.out.println("        Игрок " + player.getName());
+					System.out.println("            карты: " + player.getHand());
 					while(true) {
-						int points = PointsCalculator.calc(players.get(i).getHand());
+						int points = PointsCalculator.calc(player.getHand());
 						System.out.println("            " + points + " очков");
 						if(points >= 21) break;
-						if(!players.get(i).isNeedMoreCard()) {
+						if(!player.isNeedMoreCard()) {
 							System.out.println("            игрок отказался от карты");
 							break;
 						}
-						players.get(i).getHand().add(deck.take());
-						System.out.println("            карты: " + players.get(i).getHand());
+						player.getHand().add(deck.take());
+						System.out.println("            карты: " + player.getHand());
 					}
-//					while(PointsCalculator.calc(players.get(i).getHand()) < 21 && players.get(i).isNeedMoreCard()) {
-//						players.get(i).getHand().add(deck.take());
+//					while(PointsCalculator.calc(player.getHand()) < 21 && player.isNeedMoreCard()) {
+//						player.getHand().add(deck.take());
 //					}
 				}
 				// игра крупье
@@ -86,35 +89,36 @@ public class Game {
 				}
 				System.out.println("            " + croupierPoints + " очков");
 				// подсчёт выигрыша
-				for(int i = 0; i < players.size(); i++) {
-					System.out.print("        Игрок " + players.get(i).getName() + " ");
-					int points = PointsCalculator.calc(players.get(i).getHand());
+				for(Player player : players) {
+					System.out.print("        Игрок " + player.getName() + " ");
+					int points = PointsCalculator.calc(player.getHand());
 					switch(ResultChecker.check(points, croupierPoints)) {
 						case WIN:
 							try {
-								players.get(i).addMoney(bets.get(i) * 2);
+								player.addMoney(bets.get(player) * 2);
 								System.out.println("выиграл.");
-							} catch(NegativeMoneyException e) {}
+							} catch(NotPositiveMoneyException e) {}
 							break;
 						case DRAW:
 							try {
-								players.get(i).addMoney(bets.get(i));
+								player.addMoney(bets.get(player));
 								System.out.println("сыграл вничью.");
-							} catch(NegativeMoneyException e) {}
+							} catch(NotPositiveMoneyException e) {}
 							break;
 						case LOSS:
 							System.out.println("проиграл.");
 					}
 				}
-				for(int i = 0; i < players.size(); i++) {
-					System.out.println("    Игрок " + players.get(i).getName() + ": " + players.get(i).getMoney());
-					players.get(i).getHand().clear();
+				for(Player player : players) {
+					System.out.println("    Игрок " + player.getName() + ": " + player.getMoney());
+					player.getHand().clear();
 				}
 				croupierHand.clear();
 				bets.clear();
-				System.out.println("РАУНДА #" + round + " ОКОНЧЕН");
+				System.out.println("РАУНД " + currentRound + " из " + rounds + " ОКОНЧЕН");
 				System.out.println("*****************************");
 			}
+			roundsCount = 0;
 			System.out.println("СПИСОК ПОБЕДИТЕЛЕЙ");
 			Collections.sort(players, (player1, player2) -> Double.compare(player2.getMoney(), player1.getMoney()));
 			for(int i = 0; i < players.size() && i < 3; i++) {
@@ -133,11 +137,18 @@ public class Game {
 		return bets;
 	}
 
+	@Override
 	public List<Card> getCroupierHand() {
-		return croupierHand;
+		return Collections.unmodifiableList(croupierHand);
 	}
 
-	public int getRound() {
-		return round;
+	@Override
+	public int getCurrentRound() {
+		return currentRound;
+	}
+
+	@Override
+	public int getRoundsCount() {
+		return roundsCount;
 	}
 }
