@@ -1,18 +1,21 @@
 public class Music {
 	private String name;
-	// TODO: добавить время звучания трека (либо как целое число - количество
-	// секунд, либо создать отдельный класс Time, либо использовать стандартный
-	// класс Duration
+	private Time duration;
 
-	public Music(String name) {
+	public Music(String name, Time duration) {
 		this.name = name;
+		this.duration = duration;
 	}
 
 	public void play() {
-		System.out.println("Проигрывается \"" + name + "\"");
+		System.out.println("Проигрывается \"" + name + "\" (" + duration + ")");
 	}
 
 	public String getName() {
 		return name;
+	}
+
+	public Time getDuration() {
+		return duration;
 	}
 }

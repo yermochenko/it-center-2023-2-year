@@ -8,20 +8,28 @@ public class Player {
 		return playlist;
 	}
 
+	public void add(Music music) {
+		playlist.add(music);
+	}
+
 	public void output() {
 		int index = 1;
 		System.out.println("Playlist:");
+		Time total = new Time(0, 0);
 		for(Music music : playlist) {
-			System.out.printf("%2d. %s\n", index++, music.getName());
+			Time durarion = music.getDuration();
+			System.out.printf("%2d. %s (%s)\n", index++, music.getName(), durarion);
+			total = Time.sum(total, durarion);
 		}
-		System.out.println("Total:");
-		// TODO: вывести суммарное время звучания плейлиста
+		System.out.println("Total: " + total);
 	}
 
 	public void play(PlaingOrder order) {
 		order.setPlaylist(playlist);
+		System.out.println("Начало проигрывания плейлиста");
 		for(Music music : order) {
 			music.play();
 		}
+		System.out.println("Окончание проигрывания плейлиста");
 	}
 }
